@@ -1,0 +1,1 @@
+print("aaaah no entendía el ejercicio,", "era imprimir lo que yo quiera :p")
