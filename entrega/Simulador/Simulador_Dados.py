@@ -107,7 +107,7 @@ def estadisticas(cambios, tiros, grantotal, cantidadmini, cantidadmaxi):
             break
 
 
-def vidente_main(estadistica_num, estadistica_titulos, estadistica_empates, estadistica_jugadoresyganador, estadistica_rondasypuntajes):
+def vidente_main(estadistica_partidasjugadas, estadistica_empates, estadistica_num, estadistica_titulos, estadistica_jugadoresyganador, estadistica_rondasypuntajes):
     while True:
         eleccion = None
         while type(eleccion) != int:
@@ -129,41 +129,41 @@ def vidente_main(estadistica_num, estadistica_titulos, estadistica_empates, esta
             continue
         elif eleccion == 2:
             print("Jugar...")
-            estadisticas = vidente_play(estadistica_num, estadistica_titulos, estadistica_empates)
-            estadistica_num = estadisticas[0]
-            estadistica_titulos = estadisticas[1]
-            estadistica_empates = estadisticas[2]
+            estadisticas = vidente_play(estadistica_empates, estadistica_num, estadistica_titulos)
+            estadistica_partidasjugadas += 1
+            estadistica_empates = estadisticas[0]
+            estadistica_num = estadisticas[1]
+            estadistica_titulos = estadisticas[2]
             #estadistica_jugadoresyganador = [jugadores, [lista_veces_que_cada_jugador_ganó]]
             # ej. estadistica_jugadoresyganador = [2, [3, 5]]
             #estadisticas[3] = [jugadores, quién_ganó (o quiénes, si es que hubo un empate)]
-            if estadistica_jugadoresyganador[0] > estadisticas[3][0]:
+            if estadistica_jugadoresyganador[0] < estadisticas[3][0]:
                 estadistica_jugadoresyganador[0] = estadisticas[3][0]
-                while estadistica_jugadoresyganador[0] < len(estadistica_jugadoresyganador[1]):
+                while len(estadistica_jugadoresyganador[1]) < estadistica_jugadoresyganador[0]:
                     estadistica_jugadoresyganador[1].append(0)
             for ganador in estadisticas[3][1]:
                 estadistica_jugadoresyganador[1][ganador] += 1
             #estadistica_rondasypuntajes = [[cantidad_rondas, puntaje_minimo, puntaje_maximo], [otra_cantidad_rondas, puntaje_minimo, puntaje_maximo]]
             # ej. estadistica_rondasypuntajes = [[3, 8, 24], [5, 12, 33]]
-            #estadisticas[4] = [cantidad_rondas, puntaje_minimo, ganador_puntaje(que vendría a ser el puntaje maximo)]
-            if len(estadistica_rondasypuntajes) == 0:
-                estadistica_rondasypuntajes.append(estadisticas[4])
-            for i in range(0, len(estadistica_rondasypuntajes)):
-                if estadisticas[4][0] == estadistica_rondasypuntajes[i][0]:
-                    if estadisticas[4][1] < estadistica_rondasypuntajes[i][1]:
-                        estadistica_rondasypuntajes[i][1] = estadisticas[4][1]
-                    if estadisticas[4][2] > estadistica_rondasypuntajes[i][2]:
-                        estadistica_rondasypuntajes[i][2] = estadisticas[4][2]
-                else:
-                    estadistica_rondasypuntajes.append(estadisticas[4])
+            #estadisticas[4] = [cantidad_rondas, cantidad_jugadores, puntajes]
+            estadistica_rondasypuntajes.append(estadisticas[4])
             continue
         elif eleccion == 3:
             print("Ver las estadísticas de sus partidas...")
-            vidente_estadisticas(estadistica_num, estadistica_titulos, estadistica_empates, estadistica_jugadoresyganador, estadistica_rondasypuntajes)
+            if estadistica_partidasjugadas < 1:
+                print("Los espíritus se encuentran tristes,")
+                print("pues todavía no se ha jugado ninguna partida.")
+                print("Como no pueden hablarte de estadísticas,")
+                print("te invitan a jugar...")
+                input("Presione 'Enter' para continuar...")
+                print()
+            else:
+                vidente_estadisticas(estadistica_partidasjugadas, estadistica_empates, estadistica_num, estadistica_titulos, estadistica_jugadoresyganador, estadistica_rondasypuntajes)
             continue
         elif eleccion == 0:
             print("Volver al inicio...\nLos espíritus te saludan, desean que la fortuna esté de tu lado...")
             print("Volviendo al inicio...")
-            return(estadistica_num, estadistica_titulos, estadistica_empates, estadistica_jugadoresyganador, estadistica_rondasypuntajes)
+            return(estadistica_partidasjugadas, estadistica_empates, estadistica_num, estadistica_titulos, estadistica_jugadoresyganador, estadistica_rondasypuntajes)
 
 
 def vidente_reglas():
@@ -187,17 +187,15 @@ def vidente_reglas():
     input("Presione 'Enter' para continuar...")
     print("\n\"Al final del juego se sumarán los puntajes obtenidos en cada ronda,")
     print("y el jugador con el puntaje más alto será coronado 'Mejor Vidente' de la mesa.\"")
+    print("(Los puntajes totales no se revelarán hasta el final de la partida para generar suspenso)")
     print("\n\"Ya estás listo para jugar\n¿Te sientes con suerte?\"\n")
     print("Los espíritus se alejan...")
     input("Presione 'Enter' para volver al menú...")
 
 
-def vidente_play(estadistica_num, estadistica_titulos, empates):
+def vidente_play(estadistica_empates, estadistica_num, estadistica_titulos):
     #estadistica_num = [1:[predicciones, resultados], 2:[...], 3:[...], ... 10:[...]]  -  (me encantaría usar un diccionario)
-    estadistica_num = [[0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0]]
-    #estadictica_titulos = [burro, fortuna, mago, adivino, vidente]
-    estadistica_titulos = [0, 0, 0, 0, 0]
-    empates = 0
+    #estadictica_titulos = [burro, fortuna, hechicero, adivino, vidente]
     eleccion = None
     while type(eleccion) != int:
         print("Para iniciar una partida, elija cuántas rondas desea jugar:")
@@ -234,7 +232,7 @@ def vidente_play(estadistica_num, estadistica_titulos, empates):
                         print("Se necesita que la cantidad de rondas sea mayor que 0.")
     jugadores = None
     while type(jugadores) != int:
-        jugadores = input("Ingrese la cantidad de jugadores (deben ser más de 2): ")
+        jugadores = input("Ingrese la cantidad de jugadores (deben ser 2 o más): ")
         for d in range(0, len(jugadores)):
             if jugadores[d] not in "1234567890":
                 print("No se ha ingresado un número.")
@@ -341,7 +339,7 @@ def vidente_play(estadistica_num, estadistica_titulos, empates):
                         estadistica_titulos[1] += 1
                         input("Presione 'Enter' para continuar...")
                     elif puntaje_individual in [2, -2]:
-                        print("MAGO - su predicción se encuentra a 2 de distancia.")
+                        print("HECHICERO - su predicción se encuentra a 2 de distancia.")
                         print(f"El jugador {jugador + 1} obtiene 4 puntos.")
                         puntajes[jugador] += 4
                         estadistica_titulos[2] += 1
@@ -360,9 +358,10 @@ def vidente_play(estadistica_num, estadistica_titulos, empates):
                         input("Presione 'Enter' para continuar...")
     print("\n\nY así, acabó la partida.")
     print("Los espiritus revolotean, ansiosos por revelar los puntajes...")
+    input("Presione 'Enter' para continuar...")
     puntaje_minimo = puntajes[0]
     for jugador in range(0, jugadores):
-        print(f"El jugador {jugador + 1} obtuvo {puntajes[jugador]} puntos")
+        print(f"\nEl jugador {jugador + 1} obtuvo {puntajes[jugador]} puntos")
         if puntajes[jugador] > ganador_puntaje:
             ganador = [jugador]
             ganador_puntaje = puntajes[jugador]
@@ -372,37 +371,54 @@ def vidente_play(estadistica_num, estadistica_titulos, empates):
             puntaje_minimo = puntajes[jugador]
         input("Presione 'Enter' para continuar...")
     if len(ganador) == 1:
-        print(f"Por lo tanto... ¡El jugador {int(ganador[0] + 1)} gana con {ganador_puntaje} puntos!¡Felicitaciones!\n\n")
+        print(f"\nPor lo tanto... ¡El jugador {ganador[0] + 1} gana con {ganador_puntaje} puntos!¡Felicitaciones!\n\n")
     elif len(ganador) > 1:
         ganadores_string = []
         for i in ganador:
             ganadores_string.append(i+1)
         ganadores_string = str(ganadores_string)[1:-1].replace(",", " y")
-        print("Por lo tanto... Oh... ¡Qué cosa tan inusual!")
+        print("\nPor lo tanto... Oh... ¡Qué cosa tan inusual!")
         print(f"¡Ha habido un empate!¡Un empate entre {len(ganador)}!")
         print(f"¡Los ganadores han sido los jugadores {ganadores_string} con {ganador_puntaje} puntos!¡Felicitaciones!\n\n")
-        empates += 1
+        estadistica_empates += 1
     input("Presione 'Enter' para volver al menú...")
-    return [estadistica_num, estadistica_titulos, empates, [jugadores, ganador], [rondas, puntaje_minimo, ganador_puntaje]]
+    return [estadistica_empates, estadistica_num, estadistica_titulos, [jugadores, ganador], [rondas, jugadores, puntajes]]
 
 
-def vidente_estadisticas(numeros, titulos, empates, jugadoresyganador, rondasypuntajes):
+def vidente_estadisticas(partidasjugadas, empates, numeros, titulos, jugadoresyganador, rondasypuntajes):
     while True:
         eleccion = None
         while type(eleccion) != int:
             print("Los espíritus le invitan a introducir qué estadística desea ver:")    
-            print("  1: Información de cada número.")
-            print("  2: Cantidad de veces que se recibió cada título (burro, vidente, etc).")
-            print("  3: Cantidad de empates.")
-            print("  4: Cantidad de veces que ganó cada jugador.")
-            print("  5: Los puntajes más bajos y más altos.")
-            print("  0: Volver al inicio.")
+            print("  1: Cantidad de partidas jugadas.")
+            print("  2: Cantidad de empates.")
+            print("  3: Información de cada número.")
+            print("  4: Cantidad de veces que se recibió cada título (burro, vidente, etc).")
+            print("  5: Cantidad de veces que ganó cada jugador.")
+            print("  6: Los puntajes de cada partida.")
+            print("  0: Volver al menú.")
             eleccion = input("Usted elige: ")
-            if eleccion in ["1", "2", "3", "4", "5", "0"]:
+            if eleccion in ["1", "2", "3", "4", "5", "6", "0"]:
                 eleccion = int(eleccion)
             else:
                 print("Su elección no es válida, por favor ingrese solo un número.")
         if eleccion == 1:
+            if partidasjugadas == 1:
+                print(f"\nLos espíritus revolotean,\npues han presenciado {partidasjugadas} partida.")
+            else:
+                print(f"\nLos espíritus revolotean,\npues han presenciado {partidasjugadas} partidas.")
+            input("Presione 'Enter' para continuar...")
+            print()
+        elif eleccion == 2:
+            if empates == 0:
+                print(f"\nLos espíritus dicen que han ocurrido\nun total de {empates} empates. Era de esperar.")
+            elif empates == 1:
+                print(f"\nLos espíritus dicen que han ocurrido\nun total de {empates} empate. Wow, qué extraño.")
+            else:
+                print(f"\nLos espíritus dicen que han ocurrido\nun total de {empates} empates. ¡Wow, más de 1!.")    
+            input("Presione 'Enter' para continuar...")
+            print()
+        elif eleccion == 3:
             print("\nLos espíritus mostrarán para tí\nla información de cada número del dado:")
             print( " Num|Predicciones       |Resultados     |")
             print( " ---|-------------------|---------------|")
@@ -420,36 +436,35 @@ def vidente_estadisticas(numeros, titulos, empates, jugadoresyganador, rondasypu
             print("(Resultados: cantidad de veces que ese número salió como resultado de un tiro).")
             input("Presione 'Enter' para continuar...")
             print()
-        elif eleccion == 2:
-            print("\nLos espíritus mostrarán para tí\nla cantidad de veces que se recibió cada título:")
-            print(f" BURRO:   {titulos[0]}")
-            print(f" FORTUNA: {titulos[1]}")
-            print(f" MAGO:    {titulos[2]}")
-            print(f" ADIVINO: {titulos[3]}")
-            print(f" VIDENTE: {titulos[4]}")
-            input("Presione 'Enter' para continuar...")
-            print()
-        elif eleccion == 3:
-            if empates == 0:
-                print(f"\nLos espíritus dicen que han ocurrido\nun total de {empates} empates. Era de esperar.")
-                input("Presione 'Enter' para continuar...")
-                print()
-            else:
-                print(f"\nLos espíritus dicen que han ocurrido\nun total de {empates} empates. Wow, qué extraño.")
-                input("Presione 'Enter' para continuar...")
-                print()
         elif eleccion == 4:
-            print("\nLos espíritus saben quiénes han ganado y quiénes han perdido...")
-            for jugador in range(0, jugadoresyganador[0]):
-                print(f" El jugador {jugador +1} ha ganado {jugadoresyganador[1][jugador]} veces.")
+            print("\nLos espíritus mostrarán para tí\nla cantidad de veces que se recibió cada título:")
+            print(f"     BURRO | {titulos[0]}")
+            print(f"   FORTUNA | {titulos[1]}")
+            print(f" HECHICERO | {titulos[2]}")
+            print(f"   ADIVINO | {titulos[3]}")
+            print(f"   VIDENTE | {titulos[4]}")
             input("Presione 'Enter' para continuar...")
             print()
         elif eleccion == 5:
-            print("\nLos espítirus saben los peores y mejores puntajes...")
-            for info_ronda in rondasypuntajes:
-                print(f" Con {info_ronda[0]} rondas, el puntaje más bajo fue {info_ronda[1]}, y el más alto fue {info_ronda[2]}.")
-                print("(Tenga en cuenta que, con menos jugadores, menores puntajes, y con más jugadores, mayores puntajes).")
-                #####Quizá modificarlo para que tenga en cuenta la cantidad de jugadores también, y no solo las rondas
+            print("\nLos espíritus saben quiénes han ganado y quiénes han perdido...")
+            for jugador in range(0, jugadoresyganador[0]):
+                if jugadoresyganador[1][jugador] < 1:
+                    print(f" El jugador {jugador +1} no ha ganado por ahora.")
+                elif jugadoresyganador[1][jugador] == 1:
+                    print(f" El jugador {jugador +1} ha ganado {jugadoresyganador[1][jugador]} vez.")
+                else:
+                    print(f" El jugador {jugador +1} ha ganado {jugadoresyganador[1][jugador]} veces.")
+            input("Presione 'Enter' para continuar...")
+            print()
+        elif eleccion == 6:
+            print("\nLos espítirus recuerdan los puntajes de cada partida...")
+            for i in range(0, len(rondasypuntajes)):
+                print(f" En la partida {i+1}, con {rondasypuntajes[i][0]} rondas y {rondasypuntajes[i][1]} jugadores, los puntajes fueron:")
+                for j in range(0, len(rondasypuntajes[i][2])):
+                    if rondasypuntajes[i][2][j] == 1:
+                        print(f"  El jugador {j +1} obtuvo {rondasypuntajes[i][2][j]} punto")
+                    else:
+                        print(f"  El jugador {j +1} obtuvo {rondasypuntajes[i][2][j]} puntos")
                 input("Presione 'Enter' para continuar...")
                 print()
         elif eleccion == 0:
@@ -465,14 +480,15 @@ def main():
     estadistica_grantotal = 0
     estadistica_cantidadmini = 0
     estadistica_cantidadmaxi = 0
+    estadistica_vidente_partidasjugadas = 0
+    estadistica_vidente_empates = 0
     #estadistica_vidente_num = [1:[predicciones, resultados], 2:[...], 3:[...], ..., 10:[predicciones, resultados]]
     estadistica_vidente_num = [[0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0]]
-    #estadictica_vidente_titulos = [burro, fortuna, mago, adivino, vidente]
+    #estadictica_vidente_titulos = [burro, fortuna, hechicero, adivino, vidente]
     estadistica_vidente_titulos = [0, 0, 0, 0, 0]
-    estadistica_vidente_empates = 0
     #estadistica_vidente_jugadoresyganador = [jugadores, [lista_veces_que_cada_jugador_ganó]]
     estadistica_vidente_jugadoresyganador = [2, [0, 0]]
-    #estadistica_vidente_rondasypuntajes = [[cantidad_rondas, puntaje_minimo, puntaje_maximo], [otra_cantidad_rondas, puntaje_minimo, puntaje_maximo]]
+    #estadistica_vidente_rondasypuntajes = [[cantidad_rondas, cantidad_jugadores, puntajes], [cantidad_rondas_deotrapartida, cantidad_jugadores_deotrapartida, puntajes]]
     estadistica_vidente_rondasypuntajes = []
     while True:
         print(f"\nEl siguiente tiro será:\n  Cantidad de Dados: {dados_cantidad}\n  Cara de los dados: {str(dados_caras)[1:-1]}\n")
@@ -528,12 +544,13 @@ def main():
             print("Jugar 'El Vidente'.")
             print("\n\nEntrando a...\n EL VIDENTE\n\n")
             input("Presione 'Enter' para iniciar...")
-            estadisticas_vidente = vidente_main(estadistica_vidente_num, estadistica_vidente_titulos, estadistica_vidente_empates, estadistica_vidente_jugadoresyganador, estadistica_vidente_rondasypuntajes)
-            estadistica_vidente_num = estadisticas_vidente[0]
-            estadistica_vidente_titulos = estadisticas_vidente[1]
-            estadistica_vidente_empates = estadisticas_vidente[2]
-            estadistica_vidente_jugadoresyganador = estadisticas_vidente[3]
-            estadistica_vidente_rondasypuntajes = estadisticas_vidente[4]
+            estadisticas_vidente = vidente_main(estadistica_vidente_partidasjugadas, estadistica_vidente_empates, estadistica_vidente_num, estadistica_vidente_titulos, estadistica_vidente_jugadoresyganador, estadistica_vidente_rondasypuntajes)
+            estadistica_vidente_partidasjugadas = estadisticas_vidente[0]
+            estadistica_vidente_empates = estadisticas_vidente[1]
+            estadistica_vidente_num = estadisticas_vidente[2]
+            estadistica_vidente_titulos = estadisticas_vidente[3]
+            estadistica_vidente_jugadoresyganador = estadisticas_vidente[4]
+            estadistica_vidente_rondasypuntajes = estadisticas_vidente[5]
             continue
         elif eleccion == 0:
             print("Salir del programa.\n\n")
